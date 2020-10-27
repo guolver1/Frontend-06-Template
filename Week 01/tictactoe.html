@@ -25,8 +25,8 @@
     <div id="board"></div>
     <script>
         let pattern = [
-            [0, 2, 0],
-            [0, 0, 1],
+            [0, 0, 2],
+            [0, 1, 0],
             [0, 0, 0]
         ];
 
@@ -42,8 +42,8 @@
                     let cell = document.createElement("div");
                     cell.classList.add("cell");
                     cell.innerText =
-                        pattern[j][i] == 2 ? "×" :
-                            pattern[j][i] == 1 ? "o" : "";
+                        pattern[i][j] == 2 ? "×" :
+                            pattern[i][j] == 1 ? "o" : "";
                     cell.addEventListener("click", () => move(i, j))
                     board.appendChild(cell);
                 }
@@ -52,7 +52,7 @@
         }
 
         function move(x, y) {
-            pattern[y][x] = color;
+            pattern[x][y] = color;
             if (check(pattern, color)) {
                 alert(color == 2 ? "× is winner!" : "o is winner!")
             }
@@ -115,26 +115,57 @@
 
         }
 
-        function clone(pattern){
+        function clone(pattern) {
             return JSON.parse(JSON.stringify(pattern));
         }
 
-        function willWin(pattern, color){
-            for(let i=0; i<3;i++){
-                for(let j=0; j<3; j++){
-                    if(pattern[i][j]) continue;
+        function willWin(pattern, color) {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (pattern[i][j]) continue;
                     let tmp = clone(pattern);
-                    tmp[i][j]=color;
+                    tmp[i][j] = color;
 
-                    if(check(tmp,color)){
-                        return true;
+                    if (check(tmp, color)) {
+                        return [j, i];
                     }
                 }
             }
-            return false;
+            return null;
         }
 
+        function bestChoice(pattern, color) {
+            let p;
+            if (p = willWin(pattern, color)) { //如果当前的点要赢了
+                return {
+                    point: p,
+                    result: 1
+                }
+            }
+
+            let result = -2;
+            let point = null;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (pattern[i][j]) continue;
+                    let tmp = clone(pattern);
+                    tmp[i][j] = color;
+                    let r = bestChoice(tmp, 3 - color).result; //对方的最好结果
+
+                    if (-r > result) { //对方的最坏策略是我方的最好策略，如果对于我方更好了，则该点是更好的策略点
+                        result = -r;
+                        point = [j, i];
+                    }
+
+                }
+            }
+            return {
+                point: point,
+                result: point ? result : 0//和棋
+            }
+        }
         show(pattern);
+        console.log(bestChoice(pattern, color));
     </script>
 </body>
 
