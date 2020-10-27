@@ -25,9 +25,9 @@
     <div id="board"></div>
     <script>
         let pattern = [
-            [0, 0, 2],
-            [0, 1, 0],
-            [0, 0, 0]
+            0, 0, 0,
+            0, 0, 0,
+            0, 0, 0
         ];
 
         let color = 1;
@@ -42,9 +42,9 @@
                     let cell = document.createElement("div");
                     cell.classList.add("cell");
                     cell.innerText =
-                        pattern[i][j] == 2 ? "×" :
-                            pattern[i][j] == 1 ? "o" : "";
-                    cell.addEventListener("click", () => move(i, j))
+                        pattern[i * 3 + j] == 2 ? "×" :
+                            pattern[i * 3 + j] == 1 ? "o" : "";
+                    cell.addEventListener("click", () => move(j, i))
                     board.appendChild(cell);
                 }
                 board.appendChild(document.createElement("br"));
@@ -52,11 +52,12 @@
         }
 
         function move(x, y) {
-            pattern[x][y] = color;
+            pattern[y * 3 + x] = color;
             if (check(pattern, color)) {
                 alert(color == 2 ? "× is winner!" : "o is winner!")
             }
             color = 3 - color;
+            console.log(bestChoice(pattern, color));
             show();
             if (willWin(pattern, color)) {
                 console.log(color == 2 ? "x will win!" : "o will win!")
@@ -67,7 +68,7 @@
             for (let i = 0; i < 3; i++) {//水平方向
                 let win = true;
                 for (let j = 0; j < 3; j++) {
-                    if (pattern[j][i] !== color) {
+                    if (pattern[j * 3 + i] !== color) {
                         win = false;
                     }
                 }
@@ -80,7 +81,7 @@
             for (let i = 0; i < 3; i++) { //垂直方向
                 let win = true;
                 for (let j = 0; j < 3; j++) {
-                    if (pattern[i][j] !== color) {
+                    if (pattern[i * 3 + j] !== color) {
                         win = false;
                     }
                 }
@@ -92,7 +93,7 @@
             {
                 let win = true;
                 for (let i = 0; i < 3; i++) {
-                    if (pattern[i][i] !== color) {
+                    if (pattern[i * 3 + i] !== color) {
                         win = false;
                     }
                 }
@@ -104,7 +105,7 @@
             {
                 let win = true;
                 for (let i = 0; i < 3; i++) {
-                    if (pattern[2 - i][i] !== color) {
+                    if (pattern[i * 3 + 2 - i] !== color) {
                         win = false;
                     }
                 }
@@ -122,9 +123,9 @@
         function willWin(pattern, color) {
             for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
-                    if (pattern[i][j]) continue;
+                    if (pattern[i * 3 + j]) continue;
                     let tmp = clone(pattern);
-                    tmp[i][j] = color;
+                    tmp[i * 3 + j] = color;
 
                     if (check(tmp, color)) {
                         return [j, i];
@@ -145,18 +146,20 @@
 
             let result = -2;
             let point = null;
-            for (let i = 0; i < 3; i++) {
+            outer: for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
-                    if (pattern[i][j]) continue;
+                    if (pattern[i * 3 + j]) continue;
                     let tmp = clone(pattern);
-                    tmp[i][j] = color;
+                    tmp[i * 3 + j] = color;
                     let r = bestChoice(tmp, 3 - color).result; //对方的最好结果
 
                     if (-r > result) { //对方的最坏策略是我方的最好策略，如果对于我方更好了，则该点是更好的策略点
                         result = -r;
                         point = [j, i];
                     }
-
+                    if (result == 1) {
+                        break outer;
+                    }
                 }
             }
             return {
@@ -165,7 +168,6 @@
             }
         }
         show(pattern);
-        console.log(bestChoice(pattern, color));
     </script>
 </body>
 
