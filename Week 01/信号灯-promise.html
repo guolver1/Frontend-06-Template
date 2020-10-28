@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+        div{
+            width:80px;
+            height: 80px;
+            border-radius:40px;
+            display: inline-block;
+            margin-right: 30px;
+            background-color: grey;
+        }
+        .red.light{
+            background-color: red;
+        }
+        .yellow.light{
+            background-color: yellow;
+        }
+        .green.light{
+            background-color: green;
+        }
+    </style>
+
+        <div class="red"></div>
+        <div class="yellow"></div>
+        <div class="green"></div>
+    
+
+    <script>
+        function red(){
+            let lights = document.getElementsByTagName("div");
+            for(let i=0;i<3;i++){
+                lights[i].classList.remove("light");
+            }
+            document.getElementsByClassName("red")[0].classList.add("light");
+        }
+        function yellow(){
+            let lights = document.getElementsByTagName("div");
+            for(let i=0;i<3;i++){
+                lights[i].classList.remove("light");
+            }
+            document.getElementsByClassName("yellow")[0].classList.add("light");
+        }
+        function green(){
+            let lights = document.getElementsByTagName("div");
+            for(let i=0;i<3;i++){
+                lights[i].classList.remove("light");
+            }
+            document.getElementsByClassName("green")[0].classList.add("light");
+        }
+        function sleep(t){
+            return new Promise((resolve, reject) => {
+                setTimeout(resolve,t);
+            })
+        }
+
+        function start(){
+            green();
+            sleep(1000).then(() => {
+                yellow();
+                return sleep(2000); //Promise中可以return另一个Promise
+            }).then(() => {
+                red();
+                return sleep(3000);
+            }).then(start)
+            
+        }
+        start();
+    </script>
+</body>
+</html>
