@@ -51,27 +51,6 @@
             context.strokeStyle = "#BFBFBF";
 
             drawBoard(context);
-            
-            console.log(pattern)
-
-            pattern[0][0] = 1;
-            pattern[1][1] =2;
-            // addChess(0,0,1);
-            // addChess(1,1,2);
-            
-            
-            // for (let i = 0; i < boardSize; i++) {
-            //     for (let j = 0; j < boardSize; j++) {
-            //         let cell = document.createElement("div");
-            //         cell.classList.add("cell");
-            //         cell.innerText =
-            //             pattern[i][j] == 2 ? "×" :
-            //                 pattern[i][j] == 1 ? "o" : "";
-            //         cell.addEventListener("click", () => move(i, j))
-            //         board.appendChild(cell);
-            //     }
-            //     board.appendChild(document.createElement("br"));
-            // }
         }
 
         function drawBoard(context){
