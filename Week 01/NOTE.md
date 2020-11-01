@@ -12,5 +12,7 @@ Object.create()
 - Promise  ——链式表达式的方式<br />
 （1）Promise.all 同时等待多个Promise<br />
 （2）Promise.race竞争关系，并行执行，一个回来了就结束
-- async/await (基于Promise)
+- async/await (基于Promise)<br/>
+可以等待Promise的结束
+
 

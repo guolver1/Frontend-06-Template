@@ -25,9 +25,18 @@
     <div id="board"></div>
     <script>
         let boardSize = 15;
-        let pattern = new Array(boardSize).fill(new Array(boardSize).fill(0));
-
+        let pattern = Array.from({length:boardSize}).map(_ => Array.from({length:boardSize}).fill(0));
+        let meWin = [];
+        let computerWin = [];
         let color = 1;
+        let count = 0; 
+        let gameOver = false;
+
+        let wins = Array.from({length:boardSize}).map(
+                        _ => Array.from({length:boardSize}).map(
+                                _ => Array.from({length:5}).fill(null)
+                            )
+                        );
 
         function show() {
             let board = document.getElementById("board");
@@ -39,38 +48,16 @@
                     let cell = document.createElement("div");
                     cell.classList.add("cell");
                     cell.innerText =
-                        pattern[i * boardSize + j] == 2 ? "×" :
-                            pattern[i * boardSize + j] == 1 ? "o" : "";
-                    cell.addEventListener("click", () => move(j, i))
+                        pattern[i][j] == 2 ? "×" :
+                            pattern[i][j] == 1 ? "o" : "";
+                    cell.addEventListener("click", () => move(i, j))
                     board.appendChild(cell);
                 }
                 board.appendChild(document.createElement("br"));
             }
         }
-
-        function move(x, y) {
-            pattern[y * boardSize + x] = color;
-            if (check(pattern, color)) {
-                alert(color == 2 ? "× is winner!" : "o is winner!")
-            }
-            color = 3 - color;
-            // console.log(bestChoice(pattern, color));
-            show();
-            // computerMove();
-            // if (willWin(pattern, color)) {
-            //     console.log(color == 2 ? "x will win!" : "o will win!")
-            // }
-        }
-
         //五子棋赢得方法的三维数组，count为第几种赢法
         function getWinArray(){
-            let wins = new Array(boardSize).fill(
-                        new Array(boardSize).fill(
-                            new Array(5).fill(null)
-                            )
-                        );
-
-            let count = 0; 
 
             //垂直方向
             for(let i=0;i<boardSize;i++){
@@ -109,78 +96,142 @@
                     }
                     count++;
                 }
+            };
+           
+            meWin = Array.from({length:count}).fill(0);
+            computerWin = Array.from({length:count}).fill(0);
+        }
+        
+        getWinArray();
+
+        function move(x, y) {
+            pattern[x][y] = color;
+            color = 3 - color;
+            
+            updateWin(x,y,1);
+
+
+            if(!gameOver){
+                computerAI();
             }
+                        
         }
-        
+        function updateWin(x,y,color){
+            for(let k =0; k<count;k++){
+                if(wins[x][y][k]){
+                    if(color==1){
+                        meWin[k]++;
+                        computerWin[k]=6;
+                        if(meWin[k]==5){
+                            alert('你赢了');
+                            gameOver = true;
+                            break;
+                        }
+                    } 
+                    else if(color==2){
 
-        console.log(count)
-
-        // function computerMove(){
-        //     let choice = bestChoice(pattern, color);
-        //     if(choice.point){ //choice有点
-        //         pattern[choice.point[1]*3+choice.point[0]] = color;
-        //     }
-        //     if (check(pattern, color)) {
-        //         alert(color == 2 ? "× is winner!" : "o is winner!")
-        //     }
-        //     color=3-color;
-        //     show();
-        // }
-
-        
-
-        function clone(pattern) {
-            return JSON.parse(JSON.stringify(pattern));
-        }
-
-        function willWin(pattern, color) {
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (pattern[i * 3 + j]) continue;
-                    let tmp = clone(pattern);
-                    tmp[i * 3 + j] = color;
-
-                    if (check(tmp, color)) {
-                        return [j, i];
+                        computerWin[k]++;
+                        meWin[k]=6;
+                        if(computerWin[k]==5){
+                            alert('计算机赢了');
+                            gameOver = true;
+                            break;
+                        }
                     }
                 }
-            }
-            return null;
+
+            }  
+            console.log(computerWin)
+
         }
+        function computerAI(){
+            
+            let myScore = Array.from({length:boardSize}).map(_ => Array.from({length:boardSize}).fill(0));
+            let computerScore = Array.from({length:boardSize}).map(_ => Array.from({length:boardSize}).fill(0));
+            let max = 0;
+            let u = 0, v = 0;
 
-        // function bestChoice(pattern, color) {
-        //     let p;
-        //     if (p = willWin(pattern, color)) { //如果当前的点要赢了
-        //         return {
-        //             point: p,
-        //             result: 1
-        //         }
-        //     }
+            for(let i=0; i<boardSize; i++){
+                for(let j=0;j<boardSize;j++){
+                    if(pattern[i][j]==0){//没有落子
+                        for(let k=0; k<count;k++){
+                            if(wins[i][j][k]){//有价值的落点，如果某一个i,j出现在了多种赢法上，其分数将进行累加
+                                //计算机计算我方得分，考虑拦截
+                                switch(meWin[k]){
+                                    case 1: 
+                                        myScore[i][j]+=200;
+                                        break;
+                                    case 2: 
+                                        myScore[i][j]+=260;
+                                        break;
+                                    case 3: 
+                                        myScore[i][j]+=2000;
+                                        break;
+                                    case 4: 
+                                        myScore[i][j]+=10000;
+                                        break;
+                                    default:
+                                        break;
+                                    }
+                                    //计算机方得分
+                                switch(computerWin[k]){
+                                    case 1: 
+                                        computerScore[i][j]+=300;
+                                        break;
+                                    case 2: 
+                                        computerScore[i][j]+=500;
+                                        break;
+                                    case 3: 
+                                        computerScore[i][j]+=2500;
+                                        break;
+                                    case 4: 
+                                        computerScore[i][j]+=20000;
+                                        break;
+                                    default:
+                                        break;
+                                    }
+                                    
+                            }
+                        }
+                        
+                        //获取myScore和computerScore里分数最高的点
+                        if(myScore[i][j]>max){
+                            max = myScore[i][j];
+                            u=i;
+                            v=j;
+                            
+                        }else if(myScore[i][j]== max){
+                            if(computerScore[i][j]>=computerScore[u][v]){
+                                u=i;
+                                v=j;
+                            }
+                        }
+                    
+                        if(computerScore[i][j]>max){
+                            max = computerScore[i][j];
+                            u=i;
+                            v=j;
+                            
+                        }else if(computerScore[i][j] == max){
+                            if(myScore[i][j]>=myScore[u][v]){
+                                u=i;
+                                v=j;
+                                
+                            }
+                        }
+                    } 
+                }
+            }
+            pattern[u][v]=color;
+            updateWin(u,v,2);
 
-        //     let result = -2;
-        //     let point = null;
-        //     outer: for (let i = 0; i < 3; i++) {
-        //         for (let j = 0; j < 3; j++) {
-        //             if (pattern[i * 3 + j]) continue;
-        //             let tmp = clone(pattern);
-        //             tmp[i * 3 + j] = color;
-        //             let r = bestChoice(tmp, 3 - color).result; //对方的最好结果
+            
+            show();
+            color = 3 - color;
 
-        //             if (-r > result) { //对方的最坏策略是我方的最好策略，如果对于我方更好了，则该点是更好的策略点
-        //                 result = -r;
-        //                 point = [j, i];
-        //             }
-        //             if (result == 1) {
-        //                 break outer;
-        //             }
-        //         }
-        //     }
-        //     return {
-        //         point: point,
-        //         result: point ? result : 0//和棋
-        //     }
-        // }
-        show(pattern);
+
+        }
+        show();
     </script>
 </body>
 
