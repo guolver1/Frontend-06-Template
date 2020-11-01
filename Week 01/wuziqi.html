@@ -9,7 +9,7 @@
 
 <body>
     <style>
-        .cell {
+        /* .cell {
             width: 30px;
             height: 30px;
             font-size: 30px;
@@ -20,9 +20,15 @@
             border: 1px solid white;
             vertical-align: middle;
             color: red;
+        } */
+        canvas{
+            display: block;
+            margin: 50px auto;
+            box-shadow: -2px -2px 2px #EFEFEF;
         }
     </style>
-    <div id="board"></div>
+    <!-- <div id="board"></div> -->
+    <canvas id="board" width="450px" height="450px"></canvas>
     <script>
         let boardSize = 15;
         let pattern = Array.from({length:boardSize}).map(_ => Array.from({length:boardSize}).fill(0));
@@ -31,31 +37,92 @@
         let color = 1;
         let count = 0; 
         let gameOver = false;
+        
 
+        let board = document.getElementById("board");
+        var context = board.getContext('2d');
+        
         let wins = Array.from({length:boardSize}).map(
                         _ => Array.from({length:boardSize}).map(
                                 _ => Array.from({length:5}).fill(null)
                             )
                         );
-
         function show() {
-            let board = document.getElementById("board");
+            context.strokeStyle = "#BFBFBF";
 
-            board.innerHTML = "";
+            drawBoard(context);
+            
+            console.log(pattern)
 
+            pattern[0][0] = 1;
+            pattern[1][1] =2;
+            // addChess(0,0,1);
+            // addChess(1,1,2);
+            
+            
+            // for (let i = 0; i < boardSize; i++) {
+            //     for (let j = 0; j < boardSize; j++) {
+            //         let cell = document.createElement("div");
+            //         cell.classList.add("cell");
+            //         cell.innerText =
+            //             pattern[i][j] == 2 ? "×" :
+            //                 pattern[i][j] == 1 ? "o" : "";
+            //         cell.addEventListener("click", () => move(i, j))
+            //         board.appendChild(cell);
+            //     }
+            //     board.appendChild(document.createElement("br"));
+            // }
+        }
+
+        function drawBoard(context){
             for (let i = 0; i < boardSize; i++) {
-                for (let j = 0; j < boardSize; j++) {
-                    let cell = document.createElement("div");
-                    cell.classList.add("cell");
-                    cell.innerText =
-                        pattern[i][j] == 2 ? "×" :
-                            pattern[i][j] == 1 ? "o" : "";
-                    cell.addEventListener("click", () => move(i, j))
-                    board.appendChild(cell);
-                }
-                board.appendChild(document.createElement("br"));
+                context.moveTo(boardSize+450*i/boardSize,boardSize);
+                context.lineTo(boardSize+450*i/boardSize,450-boardSize);
+                context.stroke();
+
+                context.moveTo(boardSize,boardSize+450*i/boardSize);
+                context.lineTo(450-boardSize,boardSize+450*i/boardSize);
+                context.stroke(); //描边
             }
         }
+
+        function addChess(i, j, color){
+            context.beginPath();
+            context.arc(15+i*30, 15+j*30, 13, 0, 2*Math.PI);
+            context.closePath();
+            var gradient = context.createRadialGradient(15+i*30+2, 15+j*30-2, 13, 15+i*30+2, 15+j*30-2, 0)
+            if(color == 2){ //黑棋
+                gradient.addColorStop(0,"#0A0A0A"); //0,1代表百分比
+                gradient.addColorStop(1,"#636766");
+            }else if(color == 1){ //白棋
+                gradient.addColorStop(0,"#D1D1D1"); 
+                gradient.addColorStop(1,"#F9F9F9");
+            }
+            
+            context.fillStyle = gradient;
+            context.fill();//填充
+        }
+
+        board.onclick=function(e){
+            var x = e.offsetX;
+            var y = e.offsetY;
+            var i = Math.floor(x/30);
+            var j = Math.floor(y/30);
+            if(pattern[i][j] == 0){
+                addChess(i, j, color);
+                
+                pattern[i][j] = color;
+                
+                color = 3-color;
+                
+                updateWin(i,j,1);
+
+                if(!gameOver){
+                    computerAI();
+                }
+            }            
+        }
+
         //五子棋赢得方法的三维数组，count为第几种赢法
         function getWinArray(){
 
@@ -104,18 +171,6 @@
         
         getWinArray();
 
-        function move(x, y) {
-            pattern[x][y] = color;
-            color = 3 - color;
-            
-            updateWin(x,y,1);
-
-
-            if(!gameOver){
-                computerAI();
-            }
-                        
-        }
         function updateWin(x,y,color){
             for(let k =0; k<count;k++){
                 if(wins[x][y][k]){
@@ -141,8 +196,6 @@
                 }
 
             }  
-            console.log(computerWin)
-
         }
         function computerAI(){
             
@@ -223,11 +276,11 @@
                 }
             }
             pattern[u][v]=color;
-            updateWin(u,v,2);
 
             
-            show();
+            addChess(u, v, color);
             color = 3 - color;
+            updateWin(u,v,2);
 
 
         }
