@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
 </head>
+
 <body>
     <style>
-        
-        .cell{
+        .cell {
             display: inline-block;
             /* line-height: 7px; */
             width: 6px;
@@ -17,41 +18,41 @@
             border-bottom: 1px solid white;
             border-right: 1px solid white;
             background-color: gray;
-            vertical-align: top;   
+            vertical-align: top;
         }
-        #container{
-            width:701px;
+
+        #container {
+            width: 701px;
             height: 701px;
-            font-size: 0px;  
-         }
+            font-size: 0px;
+        }
     </style>
     <div id="container"></div>
     <button onclick="localStorage['map']= JSON.stringify(map)">save</button>
     <script>
-        let map = localStorage['map']?JSON.parse(localStorage['map']):Array(10000).fill(0);
+        let map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(10000).fill(0);
         let container = document.getElementById("container");
         let mousedown = false;
         let clear = false;
-        console.log(localStorage['map'])
-        for(let i=0; i<100; i++){
-            for(let j=0; j<100; j++){
+        for (let i = 0; i < 100; i++) {
+            for (let j = 0; j < 100; j++) {
                 let cell = document.createElement("div");
                 cell.classList.add("cell");
                 container.appendChild(cell);
 
-                if(map[i*100+j] == 1){
-                    cell.style.backgroundColor="black";
+                if (map[i * 100 + j] == 1) {
+                    cell.style.backgroundColor = "black"; //刷新后显示缓存中的图
                 }
 
                 cell.addEventListener("mousemove", () => {
-                    if(mousedown){
-                        if(clear){
-                            cell.style.backgroundColor="gray";
-                            map[i*100+j] = 0;
-                        }else{
-                            cell.style.backgroundColor="black";
-                            map[i*100+j] = 1;
-                        }    
+                    if (mousedown) {
+                        if (clear) {
+                            cell.style.backgroundColor = "gray";
+                            map[i * 100 + j] = 0;
+                        } else {
+                            cell.style.backgroundColor = "black";
+                            map[i * 100 + j] = 1;
+                        }
                     }
                 })
             }
@@ -59,13 +60,46 @@
 
         document.addEventListener("mousedown", (e) => {
             mousedown = true;
-            if(e.which ===3) clear = true;
+            if (e.button === 2) clear = true;
         })
         document.addEventListener("mouseup", () => {
             mousedown = false;
             clear = false;
         })
         document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        function sleep(t){
+            return new Promise((resolve) => {
+                setTimeout(resolve, t);
+            })
+        }
+        //广度优先搜索
+        async function path(map, start, end) {
+            var queue = [start];
+
+            async function insert(x, y) {
+                if (x < 0 || x >= 100 || y < 0 || y >= 100) return;
+                if (map[y * 100 + x]) return;
+
+                await sleep(10);
+                container.children[y*100+x].style.backgroundColor = "lightgreen"
+                map[y * 100 + x] = 2; //将未走过的点设为2
+                queue.push([x, y]);
+            }
+
+            while (queue.length) {
+                let [x, y] = queue.shift();
+                if (x === end[0] && y === end[1])
+                    return true;
+                //上下左右遍历一圈
+                await insert(x - 1, y);
+                await insert(x, y - 1);
+                await insert(x + 1, y);
+                await insert(x, y + 1);
+            }
+            return false;
+        }
     </script>
 </body>
+
 </html>
