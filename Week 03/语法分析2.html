@@ -45,18 +45,66 @@ function* tokenize(source){ //generator, 完全异步
 
 let source = [];
 
-for(let token of tokenize("10*25/2")){
+for(let token of tokenize("1+2+3")){
     if(token.type !== "Whitespace" && token.type !== "LineTerminator")
         source.push(token);
 }
 
-function Expression(tokens){
-
+function Expression(source){
+    if(source[0].type === "AdditiveExpression" && source[1] && source[1].type === "EOF"){
+        let node = {
+            type: "Expression",
+            children: [source.shift(), source.shift()]
+        }
+        source.unshift(node);
+        return node;
+    }
+    AdditiveExpression(source);
+    return Expression(source);
 }
 
 function AdditiveExpression(source){
-    
+    if(source[0].type === "MultiplicativeExpression"){
+        let node = {
+            type:"AdditiveExpression",
+            children: [source[0]]
+        }
+        source[0] = node;
+        return AdditiveExpression(source);
+    }
+    if(source[0].type === "AdditiveExpression" && source[1] && source[1].type ==="-"){
+        let node = {
+            type:"AdditiveExpression",
+            operator:"-",
+            children:[]
+        }
+        node.children.push(source.shift());
+        node.children.push(source.shift());
+        MultiplicativeExpression(source);//处理掉source里的非终结符
+        node.children.push(source.shift());
+        source.unshift(node);
+        return AdditiveExpression(source);
+    }
+    if(source[0].type === "AdditiveExpression" && source[1] && source[1].type ==="+"){
+        let node = {
+            type:"AdditiveExpression",
+            operator:"+",
+            children:[]
+        }
+        node.children.push(source.shift());
+        node.children.push(source.shift());
+        MultiplicativeExpression(source);//由于source里的运算符右侧的字符还没有做multi处理，依然是number或者是*运算，需要做一下处理再push
+        node.children.push(source.shift());
+        source.unshift(node);
+        return AdditiveExpression(source);
+    }
+    if(source[0].type === "AdditiveExpression"){
+        return source[0];
+    }
+    MultiplicativeExpression(source);//如果遇到不认识的，走一下multi逻辑，变成可识别的
+    return AdditiveExpression(source);
 }
+
 
 function MultiplicativeExpression(source){//乘法
     if(source[0].type === "Number"){ //识别第一个字符，一个数字，就推入multip...
@@ -97,7 +145,7 @@ function MultiplicativeExpression(source){//乘法
     return MultiplicativeExpression(source);
 }
 
-console.log(MultiplicativeExpression(source))
+console.log(Expression(source))
 </script>
 </body>
 </html>
