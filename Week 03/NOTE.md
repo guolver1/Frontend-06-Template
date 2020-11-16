@@ -16,7 +16,14 @@
 - 思路：  
 （1）首先建立正则表达式，和正则捕获出的每一项的具体含义的数组  
 （2）使用while循环，使用regexp.exec分别匹配每一个token，因为匹配结果数组第0项是整个正则匹配到的，所以从1开始， 看结果数组第几项能匹配上正则，然后取具体含义数组第n-1项，就是该token的具体类别
-- 如果匹配出来的长度和前进的长度不一样怎么办？（说明有不被识别的字符）
+- 如果匹配出来的长度和前进的长度不一样怎么办？（说明有不被识别的字符）  
+```
+lastIndex = regexp.lastIndex;
+result = regexp.exec(source);
+if(regexp.lastIndex - lastIndex > result[0].length) //result[0]是匹配出的字符串。如果长度超了就说明查找中有不认识的字符
+break;
+```
+- 当需要吐出一个序列，使用yield
 
 ##四则预算LL词法分析
 
