@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<script>
+    let $ = Symbol("$");//不可重复性
+    class Trie{
+        constructor(){
+            this.root = Object.create(null); //比较干净，避免prototype上的一些污染
+        }
+        insert(word){
+            let node = this.root; //从root开始，逐级把字符串放进子树里面
+            for(let c of word){
+                if(!node[c])
+                    node[c] = Object.create(null); //如果子树不存在，创建子树
+                node = node[c];//进入子树中
+            }
+
+            if(!($ in node))
+                node[$] = 0; //如果没有$说明是一个新的字符串，
+            
+            node[$] ++; //截止符计数，每个字符串出现的次数
+        }
+        most(){
+            let max = 0;
+            let maxWord = null;
+            let visit = (node, word) => {
+                if(node[$] && node[$] > max){
+                    max = node[$];
+                    maxWord = word;
+                }
+                for(let p in node){
+                    visit(node[p], word+p);//每次往下一层，都追加一个当前树的名字
+                }
+            }
+            visit(this.root,"");
+            console.log(maxWord, max);
+        }
+        
+    }
+    function randomWord(length){
+        var s = "";
+        for(let i = 0; i < length; i++)
+            s += String.fromCharCode(Math.random() * 26 + "a".charCodeAt(0)); //会产生一个随机的单词
+        return s;
+    }
+    let trie = new Trie();
+
+    for(let i = 0; i<10; i++){
+        trie.insert(randomWord(4));
+    }
+</script>
+</body>
+</html>
