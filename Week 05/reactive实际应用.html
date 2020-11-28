@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+r:<input id="r" type="range" min=0 max=255/>
+g:<input id="g" type="range" min=0 max=255/>
+b:<input id="b" type="range" min=0 max=255/>
+<div id="color" style="width:100px;height: 100px;"></div>
+
+<script>
+    let callbacks = new Map();//需要把object作为key
+    let reactivities= new Map();//把每个对象在调用reactivity时，加一个缓存
+
+    let usedReactivities = [];
+    let object = {
+        r: 1,
+        g: 1,
+        b: 1
+    }
+    
+    let po = reactive(object);//3
+
+    effect(()=>{
+        document.getElementById("r").value = po.r; //从数据到input
+    })
+    effect(()=>{
+        document.getElementById("g").value = po.g; //从数据到input
+    })
+    effect(()=>{
+        document.getElementById("b").value = po.b; //从数据到input
+    })
+
+    document.getElementById("r").addEventListener("input", event => po.r = event.target.value);//变为双向绑定
+    document.getElementById("g").addEventListener("input", event => po.g = event.target.value);//变为双向绑定
+    document.getElementById("b").addEventListener("input", event => po.b = event.target.value);//变为双向绑定
+
+    effect(()=>{
+        document.getElementById("color").style.backgroundColor = `rgb(${po.r},${po.g},${po.b})`; //从数据到input
+    })
+
+    function effect(callback){
+        // callbacks.push(callback)
+        usedReactivities = [];
+        callback();//1
+        console.log(usedReactivities);//5
+
+        for(let reactivity of usedReactivities){
+            if(!callbacks.has(reactivity[0])){
+                callbacks.set(reactivity[0], new Map());//第一层放一个对象，第二层放属性
+            }
+            if(!callbacks.get(reactivity[0]).has(reactivity[1])){
+                callbacks.get(reactivity[0]).set(reactivity[1], []);
+            }
+            callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+        }
+    }
+
+    function reactive(object){
+        if(reactivities.has(object)){
+            return reactivities.get(object);
+        }
+            
+
+        let proxy = new Proxy(object, {
+            set(obj, prop, val){
+                obj[prop] = val; //触发函数以便它可以更新最终值,名为 trigger
+                if(callbacks.get(obj))
+                    if(callbacks.get(obj).get(prop))
+
+                        for(let callback of callbacks.get(obj).get(prop)){
+                            callback();
+                        }
+                return obj[prop];
+            },
+            get(obj, prop){//跟踪更改它的函数，称为 effect
+                usedReactivities.push([obj,prop]);//4
+
+                if(typeof obj[prop] === 'object')//当属性值是对象的时候，重新跑reactive
+                //但是跑的proxy不一致，需要一个全局表格来保存 
+                    return reactive(obj[prop])
+
+                return obj[prop];
+            }
+        })
+        reactivities.set(object, proxy);
+
+        
+        return proxy;
+    }
+
+</script>    
+</body>
+</html>
