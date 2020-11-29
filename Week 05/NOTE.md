@@ -41,3 +41,9 @@ return true;
 
 ## reactive作用
 - 半成品的双向绑定，负责从数据到dom元素的一条线的监听，或是任何本地输入
+
+## 拖拽
+- ccsom
+- getBoundingClientRect()：用于获得页面中某个元素的左,上,右和下分别相对浏览器视窗的位置
+- setStart:表示某个节点的range对象的起点位置
+- setEnd:表示某个节点的range对象的结束位置
