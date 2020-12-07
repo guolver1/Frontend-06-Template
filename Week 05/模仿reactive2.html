@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<script>
+    let callbacks = [];
+    let object = {
+        a:1,
+        b:2
+    }
+    
+    let po = reactive(object);
+
+    effect(()=>{
+        console.log(po.a)
+    })
+
+
+    function effect(callback){
+        callbacks.push(callback)
+    }
+
+    function reactive(object){
+        return new Proxy(object, {
+            set(obj, prop, val){
+                obj[prop] = val; //触发函数以便它可以更新最终值,名为 trigger
+                for(let callback of callbacks){
+                    callback();
+                }
+                return obj[prop];
+            },
+            get(obj, prop){//跟踪更改它的函数，称为 effect
+                console.log(obj, prop)
+                return obj[prop];
+            }
+        })
+    }
+
+    po.a = 99;
+</script>    
+</body>
+</html>
